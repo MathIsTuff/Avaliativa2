@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import objetos.Quarto;
+import objetos.Reserva;
 
 public class Hotel {
-	static ArrayList<Quarto> quartos = new ArrayList<>();
+	public static ArrayList<Quarto> quartos = new ArrayList<>();
+	public static ArrayList<Reserva> reservas = new ArrayList<>();
 	static Scanner scan = new Scanner(System.in);
 	
 	public static void addQuarto(int num, int tipo, double preco, String disp) {
@@ -30,6 +32,38 @@ public class Hotel {
 	public static void listarQuartos() {
 		for (Quarto quarto : quartos) {
 			System.out.println(quarto);
+		}
+	}
+	public static boolean listarCorresp(int tipo) {
+		String tipoQuarto = null;
+		int matches = 0;
+		switch (tipo) {
+		case 1: {
+			tipoQuarto = "Solteiro";
+			break;
+		}
+		case 2: {
+			tipoQuarto = "Casal";
+			break;
+		}
+		case 3: {
+			tipoQuarto = "Suíte";
+			break;
+		}
+		default:
+			tipoQuarto = "Inválido";
+			break;
+		}
+		for (Quarto quarto : quartos) {
+			if(quarto.getTipoQuarto()==tipoQuarto&&quarto.isDisponivel()=="Disponível") {
+			System.out.println(quarto);
+			matches++;
+			}
+		}
+		if(matches==0) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -84,6 +118,31 @@ public class Hotel {
 	}
 	public static void removerQuarto(int num) {
 				quartos.removeIf(quarto -> quarto.getNumQuarto() == num);
+	}
+	public static void addReservaFinalizada(int checkInDia, int checkInMes, int checkInAno, int checkOutDia, int checkOutMes, int checkOutAno, String nome, int num) {
+		reservas.add(new Reserva(checkInDia, checkInMes, checkInAno, checkOutDia, checkOutMes, checkOutAno, nome, num));
+		for (Quarto quarto : quartos) {
+			if(quarto.getNumQuarto()==num) {
+				quarto.setDisponivel("Ocupado");
+			}
+		}
+		
+	}
+	public static void addReserva(int checkInDia, int checkInMes, int checkInAno, String nome, int num) {
+		reservas.add(new Reserva(checkInDia, checkInMes, checkInAno, nome, num));
+		for (Quarto quarto : quartos) {
+			if(quarto.getNumQuarto()==num) {
+				quarto.setDisponivel("Ocupado");
+			}
+		}
+		
+	}
+	public static void listarReservas() {
+		for (Reserva reserva : reservas) {
+			System.out.println(reserva);
+		}
+		
+		
 	}
 }
 
