@@ -69,8 +69,8 @@ public class Quarto {
 	}
 	@Override
 	public String toString() {
-		return "--------------------------\nQuarto " + numQuarto + "    -    " + tipoQuarto + "\nDiária de R$" + precoDiario
-				+ "    [" + disponivel + "]\n----------------------------";
+		return "Quarto " + numQuarto + "    -    " + tipoQuarto + "\nDiária de R$" + precoDiario
+				+ "    [" + disponivel + "]\n--------------------------";
 	}
 	
 }

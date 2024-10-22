@@ -31,6 +31,7 @@ public class Main {
 		}
 		case 3: {
 //			historicoReservas();
+			break;
 		}
 		case 9:{
 			System.out.println("Até logo!");
@@ -49,7 +50,7 @@ public class Main {
 		System.out.println("Gerenciamento de reservas:");
 		 System.out.println("1. Cadastrar Reserva");
          System.out.println("2. Gerenciar Reservas");
-         System.out.println("3. Relatório Ocupação");
+         System.out.println("3. Relatório de Ocupação");
          System.out.println("4. Histórico de Reservas");
          System.out.println("9. Voltar");
          choice = scan.nextInt();
@@ -59,20 +60,7 @@ public class Main {
 			break;
 		}
 		case 2:{
-			if(Hotel.quartos.isEmpty()) {
-				System.out.println("Não há quartos cadastrados.");
-				break;
-			}
-			System.out.println("Que quarto deseja editar?");
-			Hotel.listarQuartos();
-			System.out.println("0 - Cancelar");
-			int num = scan.nextInt();
-			if(num==0) {
-				break;
-			}
-			System.out.println("O que deseja editar?\n1 - Tipo de quarto\n2 - Preço diário\n3 - Disponibilidade");
-			int item = scan.nextInt();
-			Hotel.editarQuarto(num, item);
+			editarReservas();
 			break;
 		}
 		case 3:{
@@ -110,9 +98,28 @@ public class Main {
 		}
 		default: {
 			System.out.println("Opção inválida, tente novamente.");
+			break;
 		}
        }
 	}
+	}
+
+	private static void editarReservas() {
+		if(Hotel.reservas.isEmpty()) {
+			System.out.println("Não há reservas cadastrados.");
+			return;
+		}
+		System.out.println("Que reserva deseja editar?");
+		Hotel.listarReservas();
+		System.out.println("0 - Cancelar");
+		int num = scan.nextInt();
+		if(num==0) {
+			return;
+		}
+		System.out.println("O que deseja editar?\n1 - Efetuar CheckOut\n2 - Mudar quarto\n3 - Mudar nome do cliente");
+		int item = scan.nextInt();
+		Hotel.editarReserva(num, item);
+		return;
 	}
 
 	private static void cadastrar() {
@@ -145,7 +152,7 @@ public class Main {
 
 		System.out.println("Data de CheckIn Escolhida: " + checkInDia + "/" + checkInMes + "/" + checkInAno);
 
-		System.out.println("Há uma data de CheckOut?\n1 - Sim\n2 - Não");
+		System.out.println("Há um CheckOut?\n1 - Sim\n2 - Não");
 		int option = 0;
 		while(!(option<3&&option>0)) {
 			option = scan.nextInt();
@@ -167,9 +174,12 @@ public class Main {
 
 			System.out.println("Qual é o ano do CheckOut?");
 			int checkOutAno = scan.nextInt();
-
+			if(Hotel.checkDates(checkInDia, checkInMes, checkInAno, checkOutAno, checkOutMes, checkOutDia)) {
+				System.out.println("O CheckOut não pode ocorrer antes do CheckIn");
+				break;
+			}
 			System.out.println("Data de CheckOut Escolhida: " + checkOutDia + "/" + checkOutMes + "/" + checkOutAno);
-
+			
 			    Hotel.addReservaFinalizada(checkInDia, checkInMes, checkInAno, checkOutDia, checkOutMes, checkOutAno, nome, num);
 			    break;
 			}
@@ -269,6 +279,10 @@ public class Main {
 		}
 		default: {
 			System.out.println("Opção inválida, tente novamente.");
+		}
+		case 9:{
+			System.out.println("Voltando");
+			break;
 		}
 	}
 }
