@@ -5,14 +5,15 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Scanner;
 
+import objetos.Cliente;
 import objetos.Quarto;
 import objetos.Reserva;
 
 public class Hotel {
 	public static ArrayList<Quarto> quartos = new ArrayList<>();
-	public static ArrayList<Reserva> reservas = new ArrayList<>();
+	public static ArrayList<Cliente> clientes = new ArrayList<>();
 	static Scanner scan = new Scanner(System.in);
-	
+	static int idRoom;
 	public static void addQuarto(int num, int tipo, double preco, String disp) {
 		boolean quartoExiste = false;
 
@@ -121,7 +122,7 @@ public class Hotel {
 	public static void removerQuarto(int num) {
 				quartos.removeIf(quarto -> quarto.getNumQuarto() == num);
 	}
-	public static void addReservaFinalizada(int checkInDia, int checkInMes, int checkInAno, int checkOutDia, int checkOutMes, int checkOutAno, String nome, int num) {
+	public static void addReservaFinalizada(int checkInDia, int checkInMes, int checkInAno, int checkOutDia, int checkOutMes, int checkOutAno, int id, int num) {
 		boolean match;
 		for (Quarto quarto : quartos) {
 			if(num==quarto.getNumQuarto()) {
@@ -132,14 +133,17 @@ public class Hotel {
 			System.out.println("Não há nenhum quarto com esse número");
 			return;
 		}
-		reservas.add(new Reserva(checkInDia, checkInMes, checkInAno, checkOutDia, checkOutMes, checkOutAno, nome, num));
+		Cliente cliente = clientes.get(id-1);
+		Reserva reserva = new Reserva(checkInDia, checkInMes, checkInAno, checkOutDia, checkOutMes, checkOutAno, cliente.getNome(), num, idRoom);
+		idRoom++;
+		cliente.addReservas(reserva);
 		for (Quarto quarto : quartos) {
-			if(quarto.getNumQuarto()==num&&dataPassada(checkOutDia, checkOutMes, checkOutAno)) {
+			if(quarto.getNumQuarto()==num&&dataPassada(checkOutDia, checkOutMes, checkOutAno)&&!dataPassada(checkInDia, checkInMes, checkInAno)) {
 				quarto.setDisponivel("Ocupado");
 			}
 		}
 	}
-	public static void addReserva(int checkInDia, int checkInMes, int checkInAno, String nome, int num) {
+	public static void addReserva(int checkInDia, int checkInMes, int checkInAno, int id, int num) {
 		
 		boolean match;
 		for (Quarto quarto : quartos) {
@@ -151,74 +155,60 @@ public class Hotel {
 			System.out.println("Não há nenhum quarto com esse número");
 			return;
 		}
-		reservas.add(new Reserva(checkInDia, checkInMes, checkInAno, nome, num));
+		Cliente cliente = clientes.get(id-1);
+		Reserva reserva = new Reserva(checkInDia, checkInMes, checkInAno, cliente.getNome(), num, idRoom);
+		idRoom++;
+		cliente.addReservas(reserva);
 		for (Quarto quarto : quartos) {
-			if(quarto.getNumQuarto()==num&&dataPassada(checkInDia, checkInMes, checkInAno)) {
+			if(quarto.getNumQuarto()==num&&!dataPassada(checkInDia, checkInMes, checkInAno)) {
 				quarto.setDisponivel("Ocupado");
 			}
 		}
 		
 	}
 	public static void listarReservas() {
-		for (Reserva reserva : reservas) {
-			System.out.println(reserva);
-			for (Quarto quarto : quartos) {
-				if(quarto.getNumQuarto()==reserva.getQuartoReservado()) {
-				System.out.println(quarto);
-				}
-			}
+		for (Cliente cliente : clientes) {
+			cliente.listarQuartos();
 		}
 	}
 	public static void editarReserva(int num, int item) {
-		for (Reserva reserva : reservas) {
+		for (Cliente cliente : clientes) {
+			for (Reserva reserva : cliente.reservas) {
 			if(num==reserva.getId()) {
 				switch (item) {
 				case 1: {
-					System.out.println("Qual é o dia do CheckOut? (1-30)");
-					int checkOutDia = scan.nextInt();
-					if (checkOutDia < 1 || checkOutDia > 30) {
-					    System.out.println("Data de check-out inválida.");
-					    return;
-					}
-
-					System.out.println("Qual é o mês do CheckOut?\n1 - Janeiro\n2 - Fevereiro\n3 - Março\n4 - Abril\n5 - Maio\n6 - Junho\n7 - Julho\n8 - Agosto\n9 - Setembro\n10 - Outubro\n11 - Novembro\n12 - Dezembro");
-					int checkOutMes = scan.nextInt();
-					if (checkOutMes < 1 || checkOutMes > 12) {
-					    System.out.println("Mês de check-out inválido.");
-					    return;
-					}
-
-					System.out.println("Qual é o ano do CheckOut?");
-					int checkOutAno = scan.nextInt();
-
-					System.out.println("CheckOut efetuado no dia: " + checkOutDia + "/" + checkOutMes + "/" + checkOutAno);
-					reserva.setDataCheckOut(checkOutAno, checkOutMes, checkOutDia);
-					
+					reserva.setDataCheckOut();
 					for (Quarto quarto : quartos) {
 						if(quarto.getNumQuarto()==reserva.getQuartoReservado()) {
 							quarto.setDisponivel("Disponível");
 						}
 					}
 
-					    break;
+					    return;
 					}
 				case 2:{
 					System.out.println("Qual o novo quarto?");
 					int quarto = scan.nextInt();
 					reserva.setQuartoReservado(quarto);
-					break;
+					return;
 				}
 				case 3:{
-					System.out.println("Qual o novo nome do Cliente?");
-					String nome = scan.next();
-					reserva.setNome(nome);
-					break;
+					Date hoje = new Date();
+					if(reserva.getCheckIn().getTime()<hoje.getTime()) {
+						System.out.println("Não é possível cancelar uma reserva concluida ou enquanto o hospede está no quarto.");
+						break;
+					}
+					System.out.println("Reserva deletada.");
+					cliente.reservas.remove(reserva);
+					return;
 				}
+					
 				default:
 					System.out.println("Opção inválida");
 					break;
 				}
 			}
+		}
 		}
 	}
 	public static boolean dataPassada(int checkInDia, int checkInMes, int checkInAno) {
@@ -226,7 +216,7 @@ public class Hotel {
 		calendar.set(checkInAno, checkInMes-1, checkInDia);
 		Date dataCheckIn = calendar.getTime();
 		Date hoje = new Date();
-		if(hoje.getTime()>dataCheckIn.getTime()) {
+		if(hoje.getTime()>=dataCheckIn.getTime()) {
 			return false;
 		} else {
 			return true;
@@ -238,10 +228,81 @@ public class Hotel {
 		Date dataCheckIn = calendar.getTime();
 		calendar.set(checkOutAno, checkOutMes-1, checkOutDia);
 		Date dataCheckOut = calendar.getTime();
-		if(dataCheckOut.getTime()>dataCheckIn.getTime()) {
+		if(dataCheckOut.getTime()>=dataCheckIn.getTime()) {
 			return false;
 		} else {
 			return true;
+		}
+	}
+	public static void listarClientes() {
+		for (Cliente cliente : clientes) {
+			System.out.println(cliente);
+		}		
+	}
+	public static void newCliente(String nome) {
+		clientes.add(new Cliente(nome));
+	}
+	public static boolean isHospedado(int id) {
+		for (Cliente cliente : clientes) {
+			if(id==cliente.getId()) {
+			for (Reserva reserva : cliente.reservas) {
+				if(reserva.isAtual()) {
+					return true;
+				}
+			}
+			}
+		}
+		return false;
+	}
+	public static void ocupacao() {
+		int disp = 0;
+		int indis = 0;
+		int total = 0;
+		int ocupado = 0;
+		for (Quarto quarto : quartos) {
+			total++;
+			switch (quarto.isDisponivel()) {
+			case "Disponível": {
+				disp++;
+				break;
+			}
+			case "Travado": {
+				indis++;
+				break;
+			}
+			case "Ocupado": {
+				ocupado++;
+				break;
+			}
+			default:
+				break;
+			}
+		}
+		System.out.println("Existem "+total+" quartos cadastrados, sendo:\n " + disp + " Disponíveis;\n "+indis+" Travados;\n "+ocupado+" Ocupados.");
+		System.out.println("Quartos ocupados:");
+		listarOcupados();
+	}
+	private static void listarOcupados() {
+		for (Quarto quarto : quartos) {
+			if(quarto.isDisponivel()=="Ocupado") {
+				System.out.println(quarto);
+				for (Cliente cliente : clientes) {
+					for (Reserva reserva : cliente.reservas) {
+						if(reserva.getQuartoReservado()==quarto.getNumQuarto()) {
+							if(reserva.getCheckOut()==null) {
+								System.out.println("Ocupado desde "+ reserva.getDataCheckIn() + " Sem data de Checkout prevista.\n---------------------");
+							} else {
+								System.out.println("Ocupado desde "+ reserva.getDataCheckIn() + ", liberado dia " + reserva.getDataCheckOut()+"\\n---------------------");
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	public static void listarReservasAtivas() {
+		for (Cliente cliente : clientes) {
+			cliente.listarQuartosAtivo();
 		}
 	}
 }

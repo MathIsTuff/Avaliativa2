@@ -2,6 +2,8 @@ package principal;
 
 import java.util.Scanner;
 
+import objetos.Cliente;
+import objetos.Quarto;
 import objetos.Reserva;
 
 public class Main {
@@ -17,7 +19,7 @@ public class Main {
 		while(choice != 9) {
 		 System.out.println("1. Gerenciar Quartos");
          System.out.println("2. Gerenciar Reservas");
-         System.out.println("3. Relatório Financeiro");
+         System.out.println("3. Gerenciar Clientes");
          System.out.println("9. Sair");
          choice = scan.nextInt();
          switch (choice) {
@@ -30,7 +32,7 @@ public class Main {
 			break;
 		}
 		case 3: {
-//			historicoReservas();
+			gerenciarClientes();
 			break;
 		}
 		case 9:{
@@ -44,6 +46,78 @@ public class Main {
          }
 	}}
 	
+	private static void gerenciarClientes() {
+		int choice = 0;
+		while(choice!=9) {
+		System.out.println("Gerenciamento de clientes:");
+		 System.out.println("1. Cadastrar Cliente");
+         System.out.println("2. Editar Clientes");
+         System.out.println("3. Listar Clientes");
+         System.out.println("9. Voltar");
+         choice = scan.nextInt();
+         switch (choice) {
+		case 1: {
+			cadastrarCliente();
+			break;
+		}
+		case 2:{
+			editarClientes();
+			break;
+		}
+		case 3:{
+			Hotel.listarClientes();
+			break;
+		}
+		case 9:{
+			System.out.println("Voltando");
+			break;
+		}
+		default: {
+			System.out.println("Opção inválida, tente novamente.");
+			break;
+		}
+       }
+	}
+	}
+
+	private static void editarClientes() {
+		if(Hotel.clientes.isEmpty()) {
+			System.out.println("Não há clientes cadastrados.");
+			return;
+		}
+		System.out.println("Que cliente deseja editar?");
+		Hotel.listarClientes();
+		System.out.println("0 - Cancelar");
+		int num = scan.nextInt();
+		if(num==0) {
+			return;
+		}
+		System.out.println("O que deseja editar?\n1 - Mudar nome\n2 - Remover cliente");
+		int item = scan.nextInt();
+		if(item==1) {
+			Cliente cliente = Hotel.clientes.get(num-1);
+			System.out.println("Qual o novo nome do cliente?");
+			String nome = scan.next();
+			cliente.setNome(nome);
+			return;
+		}
+		if(item==2) {
+			Hotel.clientes.remove(num-1);
+			System.out.println("Cliente removido.");
+			return;
+		}
+		
+		return;
+	}
+
+	private static void cadastrarCliente() {
+		System.out.println("Qual o nome do cliente?");
+		String nome = scan.next();
+		Hotel.newCliente(nome);
+		System.out.println("Cliente adicionado.");
+		return;
+	}
+
 	private static void gerenciarReservas() {
 		int choice = 0;
 		while(choice!=9) {
@@ -64,29 +138,12 @@ public class Main {
 			break;
 		}
 		case 3:{
-			if(Hotel.reservas.isEmpty()) {
-				System.out.println("Não há reservas cadastrados.");
-				break;
-			}
-			System.out.println("Que quarto deseja remover?");
-			Hotel.listarQuartos();
-			System.out.println("0 - Cancelar");
-			int num = scan.nextInt();
-			if(num==0) {
-				break;
-			}
-			System.out.println("Tem certeza?\n1 - Sim\n2 - Não\n");
-			int confirm = scan.nextInt();
-			if(confirm==1) {
-			Hotel.removerQuarto(num);
-			}else {
-				System.out.println("Operação cancelada.");
-			}
+			Hotel.ocupacao();
 			break;
 		}
 		case 4:{
-			if(Hotel.reservas.isEmpty()) {
-				System.out.println("Não há reservas cadastrados.");
+			if(Hotel.clientes.isEmpty()) {
+				System.out.println("Não há clientes cadastrados.");
 				break;
 			}
 			Hotel.listarReservas();
@@ -105,26 +162,35 @@ public class Main {
 	}
 
 	private static void editarReservas() {
-		if(Hotel.reservas.isEmpty()) {
-			System.out.println("Não há reservas cadastrados.");
+		if(Hotel.clientes.isEmpty()) {
+			System.out.println("Não há clientes cadastrados.");
 			return;
 		}
 		System.out.println("Que reserva deseja editar?");
-		Hotel.listarReservas();
+		Hotel.listarReservasAtivas();
 		System.out.println("0 - Cancelar");
 		int num = scan.nextInt();
 		if(num==0) {
 			return;
 		}
-		System.out.println("O que deseja editar?\n1 - Efetuar CheckOut\n2 - Mudar quarto\n3 - Mudar nome do cliente");
+		System.out.println("O que deseja editar?\n1 - Efetuar CheckOut\n2 - Mudar quarto\n3 - Cancelar reserva");
 		int item = scan.nextInt();
 		Hotel.editarReserva(num, item);
 		return;
 	}
 
 	private static void cadastrar() {
-		System.out.println("Qual o nome do cliente?");
-		String nome = scan.next();
+		if(Hotel.clientes.isEmpty()) {
+			System.out.println("Não há clientes cadastrados, favor cadastrar um cliente antes de efetuar reservas.");
+			return;
+		}
+		System.out.println("Qual o id do cliente?");
+		Hotel.listarClientes();
+		int id = scan.nextInt();
+		if(Hotel.isHospedado(id)) {
+			System.out.println("Esse cliente está atualmente hospedado, faça seu CheckOut e tente novamente.");
+			return;
+		}
 		System.out.println("Qual o tipo do quarto?\n1 - Solteiro\n2 - Casal\n3 - Suite");
 		int tipo = scan.nextInt();
 		if(Hotel.listarCorresp(tipo)) {
@@ -133,6 +199,16 @@ public class Main {
 		}
 		System.out.println("Qual o número do quarto?");
 		int num = scan.nextInt();
+		boolean match = false;
+		for (Quarto quarto : Hotel.quartos) {
+			if(num==quarto.getNumQuarto()) {
+				match = true;
+			}
+		}
+		if(!match) {
+			System.out.println("O quarto não existe.");
+			return;
+		}
 		System.out.println("Qual é o dia do CheckIn? (1-30)");
 		int checkInDia = scan.nextInt();
 		if (checkInDia < 1 || checkInDia > 30) {
@@ -180,12 +256,12 @@ public class Main {
 			}
 			System.out.println("Data de CheckOut Escolhida: " + checkOutDia + "/" + checkOutMes + "/" + checkOutAno);
 			
-			    Hotel.addReservaFinalizada(checkInDia, checkInMes, checkInAno, checkOutDia, checkOutMes, checkOutAno, nome, num);
+			    Hotel.addReservaFinalizada(checkInDia, checkInMes, checkInAno, checkOutDia, checkOutMes, checkOutAno, id, num);
 			    break;
 			}
 		
 		case 2: {
-			Hotel.addReserva(checkInDia, checkInMes, checkInAno, nome, num);
+			Hotel.addReserva(checkInDia, checkInMes, checkInAno, id, num);
 			break;
 		}
 		default:
@@ -211,7 +287,7 @@ public class Main {
 			int tipo = scan.nextInt();
 			System.out.println("Qual é a diária do quarto?");
 			double preco = scan.nextInt();
-			System.out.println("Qual o estado do quarto?\n1 - Disponível\n2 - Ocupado");
+			System.out.println("Qual o estado do quarto?\n1 - Disponível\n2 - Travado");
 			String disp = null;
 			int option = 0;
 			while(!(option<3&&option>0)) {
@@ -222,7 +298,7 @@ public class Main {
 				break;
 			}
 			case 2: {
-				disp = "Ocupado";
+				disp = "Travado";
 				break;
 			}
 			default:
@@ -277,13 +353,14 @@ public class Main {
 			Hotel.listarQuartos();
 			break;
 		}
-		default: {
-			System.out.println("Opção inválida, tente novamente.");
-		}
 		case 9:{
 			System.out.println("Voltando");
 			break;
 		}
+		default: {
+			System.out.println("Opção inválida, tente novamente.");
+		}
+
 	}
 }
 	}

@@ -16,12 +16,26 @@ public class Reserva {
 	String nome;
 	int quartoReservado;
 	long dias;
+	boolean atual;
 	public int getId() {
 		return id;
 	}
 	
 	
-	public Date getDataCheckIn() {
+	public boolean isAtual() {
+		return atual;
+	}
+
+
+	public void setAtual(boolean atual) {
+		this.atual = atual;
+	}
+
+
+	public String getDataCheckIn() {
+		return dataForm.format(dataCheckIn);
+	}
+	public Date getCheckIn() {
 		return dataCheckIn;
 	}
 
@@ -29,14 +43,17 @@ public class Reserva {
 		this.dataCheckIn = dataCheckIn;
 	}
 
-	public Date getDataCheckOut() {
+	public String getDataCheckOut() {
+		return dataForm.format(dataCheckOut);
+	}
+	public Date getCheckOut() {
 		return dataCheckOut;
 	}
 
-	public void setDataCheckOut(int checkOutAno, int checkOutMes, int checkOutDia) {
-		calendar.set(checkOutAno, checkOutMes-1, checkOutDia);
-		this.dataCheckOut = calendar.getTime();
-		this.dias = (int) (dataCheckOut.getTime() - dataCheckIn.getTime())/(24 * 60 * 60 * 1000);
+	public void setDataCheckOut() {
+		this.dataCheckOut = new Date();
+		this.dias = (dataCheckOut.getTime() - dataCheckIn.getTime())/(24 * 60 * 60 * 1000);
+		this.atual = false;
 	}
 
 	public void setId(int id) {
@@ -49,30 +66,49 @@ public class Reserva {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
+	public void listRoom() {
+		for (Quarto quarto : Hotel.quartos) {
+			if(quarto.getNumQuarto()==quartoReservado) {
+				System.out.println(quarto);
+			}
+		}
+	}
 	public int getQuartoReservado() {
 		return quartoReservado;
 	}
 	public void setQuartoReservado(int quartoReservado) {
 		this.quartoReservado = quartoReservado;
 	}
-	public Reserva(int checkInDia, int checkInMes, int checkInAno, int checkOutDia, int checkOutMes, int checkOutAno, String nome, int num) {
+	public Reserva(int checkInDia, int checkInMes, int checkInAno, int checkOutDia, int checkOutMes, int checkOutAno, String nome, int num, int id) {
 		calendar.set(checkInAno, checkInMes-1, checkInDia);
 		this.dataCheckIn = calendar.getTime();
 		calendar.set(checkOutAno, checkOutMes-1, checkOutDia);
 		this.dataCheckOut = calendar.getTime();
 		this.nome = nome;
 		this.quartoReservado = num;
-		this.id = Hotel.reservas.size()+1;
 		this.dias = (dataCheckOut.getTime() - dataCheckIn.getTime())/(24 * 60 * 60 * 1000);
+		this.id = id+1;
+		Date hoje = new Date();
+		if(hoje.getTime()>=dataCheckOut.getTime()) {
+			this.atual = true;
+		} else {
+			this.atual = false;
+		}
+		
 	}
-	public Reserva(int checkInDia, int checkInMes, int checkInAno, String nome, int num) {
+	public Reserva(int checkInDia, int checkInMes, int checkInAno, String nome, int num, int id) {
 		calendar.set(checkInAno, checkInMes-1, checkInDia);
 		this.dataCheckIn = calendar.getTime();
 		this.nome = nome;
 		this.quartoReservado = num;
-		this.id = Hotel.reservas.size()+1;
 		Date hoje = new Date();
 		this.dias = (hoje.getTime() - dataCheckIn.getTime())/(24 * 60 * 60 * 1000);
+		this.id = id+1;
+		if(hoje.getTime()>=dataCheckIn.getTime()) {
+			this.atual = true;
+		} else {
+			this.atual = false;
+		}
 	}
 	@Override
 	public String toString() {
